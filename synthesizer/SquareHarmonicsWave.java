@@ -6,18 +6,28 @@ import java.util.Map;
 /**
  * Created by ericlgame on 24-Feb-16.
  */
-public class SquareHarmonicsString extends KarplusStrongString {
+public class SquareHarmonicsWave extends KarplusStrongString {
 
     Map<Integer, Double> harmonics = new HashMap<Integer, Double>();
 
-    public SquareHarmonicsString (double frequency) {
-        super(frequency, .996);
-        harmonics.put(1, 0.2);
-        harmonics.put(3, 0.1);
-        harmonics.put(5, 0.1);
+    private double pluckDelta;
+    private double releaseDelta;
+    private double filterIn;
+    private double filterOut;
+
+    public SquareHarmonicsWave (double frequency) {
+        super(frequency, 0);
+        harmonics.put(1, 0.1);
+        harmonics.put(3, 0.05);
+        harmonics.put(5, 0.05);
+        pluckDelta = .9998;
+        releaseDelta = .9;
+        filterIn = 0;
+        filterOut = 0;
     }
 
     public void pluck() {
+        setDeltaVolume(pluckDelta);
         clear();
         int capacity = buffer().capacity();
         for (int i = 0; i < capacity; i++) {
@@ -27,9 +37,10 @@ public class SquareHarmonicsString extends KarplusStrongString {
 
     public void tic() {
         double first = buffer().dequeue();
-        double second = buffer().peek();
-        double last = (first + second) * (deltaVolume() / 2);
-        buffer().enqueue(last);
+        double x = first * deltaVolume();
+        filterOut = C() * x + filterIn - C() * filterOut; // allpass tuning filter
+        filterIn = x;
+        buffer().enqueue(filterOut * deltaVolume());
     }
 
     private double getSample(int index) {
@@ -56,6 +67,6 @@ public class SquareHarmonicsString extends KarplusStrongString {
     }
 
     public void release() {
-
+        setDeltaVolume(releaseDelta);
     }
 }

@@ -29,10 +29,15 @@ public abstract class VariableDeltaString extends KarplusStrongString {
         tics = 0;
     }
 
+    public VariableDeltaString(double frequency, int tuned) {
+        super(frequency, tuned);
+        tics = 0;
+    }
+
     public abstract void calcDelta();
 
     public void resetTics() {
-         tics = 0;
+        tics = 0;
     }
 
     public void oneTic() {

@@ -8,15 +8,16 @@ public abstract class KarplusStrongString {
     private static final int SR = 44100; // Sampling Rate
     private double deltaVolume; // energy change factor
     private double maxVolume;
+    private double initialVolume;
     private double frequency;
     private BoundedQueue<Double> buffer;
-    private int status; // 1 = need to pluck, -1 = locked
-    private double volumeControl = .05;
+    private int status; // 0 = ready to pluck, 1 = need to pluck, -1 = locked, 2 = need to pluck and hold, -2 = locked and held, 3 = held
+    private double volumeAdd = .05;
+    private double volumeMultiply = 1.2;
     private double C;
 
     public KarplusStrongString(double frequency) {
         buffer = new ArrayRingBuffer<Double>((int) Math.round(SR / frequency));
-        System.out.println(SR / frequency);
         for (int i = 0; i < buffer.capacity(); i++) {
             buffer.enqueue(0.0);
         }
@@ -75,10 +76,6 @@ public abstract class KarplusStrongString {
         while (!buffer.isEmpty()) {
             buffer.dequeue();
         }
-        /*
-        for (int i = 0; i < buffer.capacity(); i++) {
-            buffer.dequeue();
-        } */
     }
 
     public void setDeltaVolume(double newDV) {
@@ -98,6 +95,14 @@ public abstract class KarplusStrongString {
 
     public void setMaxVolume(double maxVolume) {
         this.maxVolume = maxVolume;
+    }
+
+    public double getInitialVolume() {
+        return initialVolume;
+    }
+
+    public void setInitialVolume(double initialVolume) {
+        this.initialVolume = initialVolume;
     }
 
     public double checkMax(double x) {
@@ -120,11 +125,15 @@ public abstract class KarplusStrongString {
     }
 
     public void increaseVolume() {
-        maxVolume += volumeControl;
+        //maxVolume += volumeAdd;
+        maxVolume *= volumeMultiply;
+        initialVolume *= volumeMultiply;
     }
 
     public void decreaseVolume() {
-        maxVolume -= volumeControl;
+        //maxVolume -= volumeAdd;
+        maxVolume /= volumeMultiply;
+        initialVolume /= volumeMultiply;
     }
 
     public double C() {

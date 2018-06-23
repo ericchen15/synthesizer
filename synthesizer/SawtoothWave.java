@@ -4,17 +4,16 @@ package synthesizer;
  * Created by ericlgame on 14-Mar-16.
  */
 
-public class SquareWave extends KarplusStrongString {
+public class SawtoothWave extends KarplusStrongString {
 
     private double pluckDelta;
     private double releaseDelta;
     private double filterIn;
     private double filterOut;
 
-    public SquareWave(double frequency) {
+    public SawtoothWave(double frequency) {
         super(frequency, 0);
-        setMaxVolume(0.4);
-        setInitialVolume(0.2);
+        setMaxVolume(0.2);
         pluckDelta = .9998;
         releaseDelta = .9;
         filterIn = 0;
@@ -25,13 +24,9 @@ public class SquareWave extends KarplusStrongString {
         setDeltaVolume(pluckDelta);
         clear();
         int capacity = buffer().capacity();
-        int half = capacity / 2;
-        int otherHalf = capacity - half;
-        for (int i = 0; i < half; i++) {
-            buffer().enqueue(getInitialVolume() * -1);
-        }
-        for (int i = 0; i < otherHalf; i++) {
-            buffer().enqueue(getInitialVolume());
+        for (int i = 0; i < capacity; i++) {
+            double sample = (-0.5 + (i / (capacity - 1)) * 2 * getMaxVolume());
+            buffer().enqueue(sample);
         }
     }
 
@@ -40,7 +35,7 @@ public class SquareWave extends KarplusStrongString {
         double x = first * deltaVolume();
         filterOut = C() * x + filterIn - C() * filterOut; // allpass tuning filter
         filterIn = x;
-        buffer().enqueue(checkMax(filterOut * deltaVolume()));
+        buffer().enqueue(filterOut * deltaVolume());
     }
 
     public void release() {
